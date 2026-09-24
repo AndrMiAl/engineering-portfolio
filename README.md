@@ -9,10 +9,10 @@
 | # | Проект | Что это | Стек |
 |---:|---|---|---|
 | 1 | [**AtlasProf — Атлас профессий**](docs/atlasprof.md) | Командная веб-система: карта направлений, профессии, образовательные траектории, база знаний и админка | Python, Flask, PostgreSQL, React, JavaScript |
-| 2 | [**Unified VPS Panel — два хостинга в одном интерфейсе**](docs/unified-vps-panel.md) | Единая веб-панель для двух VPS-провайдеров: состояние серверов, пользователи, конфигурации и управление сервисами | Python, Flask, JavaScript, Linux, nginx, 3x-ui |
-| 3 | [**ЖКХ40**](docs/zhkh40.md) | Командный Flask-сервис: база знаний, чат-сценарии, калькуляторы, документы и админка | Python, Flask, DOCX, JavaScript, HTML/CSS |
-| 4 | [**Хакатон 2024 — ML и геоданные**](docs/hakaton-2024.md) | ML-классификация ошибок тепловых данных, обработка Excel, геокодирование и интерактивная карта | Python, Pandas, scikit-learn, TensorFlow, Folium |
-| 5 | [**n8n Automation**](docs/n8n-automation.md) | Production-автоматизация цепочек обработки и публикации контента, связанная с Python-сервисами | n8n, Python, REST/API, Linux, systemd |
+| 2 | [**2 хостинга в 1 сайте**](docs/unified-vps-panel.md) | Единый сайт и веб-панель для двух VPS-провайдеров: состояние серверов, пользователи, конфигурации, сервисы и автоматизация | Python, Flask, n8n, JavaScript, Linux, nginx, 3x-ui |
+| 3 | [**n8n Automation**](docs/n8n-automation.md) | Orchestration и автоматизация вокруг Python-сервисов, серверной инфраструктуры, API и событий | n8n, Python, REST/API, Linux, systemd |
+| 4 | [**ЖКХ40**](docs/zhkh40.md) | Командный Flask-сервис: база знаний, чат-сценарии, калькуляторы, документы и админка | Python, Flask, DOCX, JavaScript, HTML/CSS |
+| 5 | [**Хакатон 2024 — ML и геоданные**](docs/hakaton-2024.md) | ML-классификация ошибок тепловых данных, обработка Excel, геокодирование и интерактивная карта | Python, Pandas, scikit-learn, TensorFlow, Folium |
 
 ## Другие технические проекты
 
@@ -24,7 +24,7 @@
 
 ## Основной стек
 
-**Python · Backend · Flask/FastAPI · Data/ML · scikit-learn · TensorFlow · n8n · Linux · nginx · Docker · JavaScript**
+**Python · Backend · Flask/FastAPI · Data/ML · scikit-learn · TensorFlow · n8n · Automation · Linux · nginx · Docker · JavaScript**
 
 ## Как читать это портфолио
 
