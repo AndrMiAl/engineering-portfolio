@@ -1,29 +1,69 @@
 # n8n Automation
 
-**Тип:** production-автоматизация, используемая вместе с Python-сервисами и серверной инфраструктурой.
+[← Все проекты](../README.md) · [Workflow / код](../examples/n8n-automation/)
 
-n8n используется не как отдельная учебная демка, а как orchestration-слой в рабочих проектах: запускает шаги, связывает сервисы и API, обрабатывает события и убирает повторяемые ручные действия.
+**Тип:** production-автоматизация вокруг Python-сервисов и серверных процессов
+**Стек:** n8n · Python · REST/API · Linux · systemd
 
-## Где применяется
+## Коротко
 
-Основной сценарий связан с проектом [**«2 хостинга в 1 сайте»**](unified-vps-panel.md): Python/Flask отвечает за backend и работу с инфраструктурой, а n8n используется для orchestration и автоматизации повторяемых операций вокруг серверов и сервисов.
+n8n используется как orchestration-слой: принимает событие, связывает API и Python-компоненты, принимает решение по результату шага и передаёт выполнение дальше. Основная бизнес-логика при этом остаётся в коде.
 
-Также n8n применяется в других внутренних workflow, где удобнее визуально связать Python-компоненты, API и события, не перенося в low-code основную бизнес-логику.
+## Типовой workflow
 
-## Что даёт такая схема
+```mermaid
+flowchart LR
+    T[Trigger / event] --> V[Validate input]
+    V --> API[Python / REST API]
+    API --> C{Успешно?}
+    C -->|Да| NEXT[Следующий шаг]
+    C -->|Нет| RETRY[Retry / error branch]
+    NEXT --> REPORT[Status / notification]
+    RETRY --> REPORT
+```
 
-- визуальная оркестрация workflow;
-- связка Python-сервисов и API;
-- повторяемые сценарии запуска;
-- автоматизация серверных и сервисных операций;
-- разделение основной логики и orchestration;
-- удобное управление цепочками без переноса всей логики в low-code;
-- запуск как отдельного Linux-сервиса с restart policy.
+## Разделение ответственности
 
-## Стек
+```mermaid
+flowchart TB
+    N[n8n] -->|orchestration| P[Python services]
+    N -->|HTTP/API| X[External integrations]
+    N -->|events| S[Service actions]
+    P --> LOGIC[Business logic]
+    P --> DATA[(Data / state)]
+    S --> L[Linux / systemd]
+```
 
-**n8n · Python · REST/API · Linux · systemd · automation · external integrations**
+## Где это применяется
 
-## Принцип
+- последовательные workflow вокруг Python-сервисов;
+- API-вызовы и проверка результата;
+- повторяемые серверные операции;
+- условные ветки и retry-сценарии;
+- фоновые цепочки обработки;
+- отчёт о результате и переход к следующему этапу.
 
-n8n отвечает за orchestration, а backend, обработка данных и основная логика остаются в обычных Python-компонентах. Это позволяет использовать low-code там, где он действительно удобен, сохраняя кодовую часть прозрачной и управляемой.
+## Почему не переносить всю логику в low-code
+
+n8n удобен для orchestration, но сложная обработка, работа с данными и тестируемая бизнес-логика остаются в Python. В результате workflow остаётся читаемым, а код — проверяемым и переносимым.
+
+## Workflow / код
+
+- [Очищенный n8n workflow](../examples/n8n-automation/workflow.example.json)
+- [Python worker для одного шага](../examples/n8n-automation/worker.py)
+- [Папка примеров](../examples/n8n-automation/)
+
+```text
+examples/n8n-automation/
+├── workflow.example.json
+├── worker.py
+└── README.md
+```
+
+## Production-эксплуатация
+
+n8n и связанные Python-компоненты запускаются как отдельные сервисы. Это позволяет рестартовать orchestration независимо от основной логики и не хранить реальные credentials внутри экспортируемого workflow.
+
+## Безопасность
+
+Публичный workflow не содержит credential IDs, токенов, внутренних URL и реальных endpoint-адресов. Это именно технический пример структуры workflow.

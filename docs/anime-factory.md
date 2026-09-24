@@ -1,56 +1,80 @@
 # Anime Factory
 
-**Тип:** рабочий приватный проект
-**Задача:** автоматизировать путь от исходного материала до готового короткого видео и его публикации.
+[← Все проекты](../README.md) · [Код / примеры](../examples/anime-factory/)
 
-## Что реализовано
+**Тип:** рабочий приватный pipeline
+**Стек:** Python · asyncio · SQLAlchemy · FFmpeg · faster-whisper · YouTube API · Telegram · n8n
 
-Проект объединяет несколько сервисов в единый pipeline:
+## Задача
 
-1. получение каталога и метаданных;
-2. поиск/получение исходного материала;
-3. анализ видео и выбор подходящих фрагментов;
-4. рендер вертикального ролика;
-5. субтитры, overlay и watermark;
-6. публикация в Telegram и YouTube;
-7. управление через Telegram и Web UI;
-8. запуск фоновых компонентов как Linux-сервисов.
+Автоматизировать путь от исходного материала до готового короткого видео и его публикации, сохраняя отдельные этапы заменяемыми и управляемыми.
 
-## Архитектура
+## Pipeline
 
 ```mermaid
 flowchart LR
-    S[Источники и каталог] --> C[Discovery / Catalog]
-    C --> A[Video analysis]
-    A --> R[FFmpeg render pipeline]
-    R --> P{Publishers}
-    P --> T[Telegram]
-    P --> Y[YouTube]
-    UI[Web UI] --> O[Orchestration]
-    TG[Telegram bridge] --> O
-    O --> C
-    O --> R
+    D[Discovery] --> DL[Download]
+    DL --> A[Analyze]
+    A --> S[Subtitles]
+    S --> R[Render]
+    R --> P[Publish]
+    P --> TG[Telegram]
+    P --> YT[YouTube]
 ```
 
-## Стек
+## Архитектура компонентов
 
-- **Python / asyncio** — основная backend-логика;
-- **SQLAlchemy + SQLite** — каталог, состояние и история публикаций;
-- **FFmpeg / ffmpeg-python** — обработка и рендер видео;
-- **faster-whisper** — работа с речью/субтитрами;
-- **yt-dlp** — получение доступного исходного материала;
-- **YouTube Data API** — публикация;
-- **aiogram / Telegram** — управление и уведомления;
-- **Linux, systemd, supervisor** — эксплуатация сервисов.
+```mermaid
+flowchart TB
+    UI[Web UI / control panel] --> O[Orchestrator]
+    BOT[Telegram bridge] --> O
+    N8N[n8n] --> O
+    O --> PIPE[Async pipeline]
+    PIPE --> DB[(SQLAlchemy / SQLite)]
+    PIPE --> FF[FFmpeg]
+    PIPE --> WH[Whisper]
+    PIPE --> PUB[Publishers]
+    SYS[systemd / timers] --> O
+```
+
+## Реальная структура проекта
+
+```text
+core/
+├── anime_shorts/
+│   ├── orchestrator.py
+│   ├── pipeline.py
+│   ├── repositories.py
+│   ├── models.py
+│   ├── discovery/
+│   ├── downloaders/
+│   ├── editors/
+│   ├── publishers/
+│   └── subtitles/
+├── tests/
+└── pyproject.toml
+n8n/
+├── config/
+└── scripts/
+deploy/systemd/
+telegram/
+web-ui/
+youtube/
+```
+
+## Код / примеры
+
+- [Async pipeline](../examples/anime-factory/pipeline.py)
+- [Папка примеров](../examples/anime-factory/)
 
 ## Инженерные задачи
 
-Проект ценен не отдельным алгоритмом, а связкой компонентов: нужно синхронизировать состояние pipeline, не смешивать runtime с исходниками, безопасно работать с OAuth/token-based интеграциями и сохранять управляемость системы после переноса на сервер.
+Здесь ценна связка компонентов: stateful pipeline, внешние процессы, media processing, OAuth/API-интеграции, фоновые сервисы и повторяемость запуска. Компоненты разделены через stages/protocols, поэтому отдельные реализации можно менять без переписывания всего pipeline.
 
-В кодовой базе есть отдельные тесты для captions, clip collection, control panel, decorators, inbox/matching и YouTube publisher. Python-модули дополнительно проходят syntax/compile проверки перед изменениями.
+## Проверки
+
+В приватной кодовой базе есть тесты для captions, clip collection, control panel, decorators, inbox/matching и YouTube publisher. Python-код проходит compile/syntax checks.
 
 ## Безопасность
 
-Рабочие базы, media, cookies, OAuth credentials, Telegram/YouTube tokens, ключи и логи не хранятся в публичном Git. Для конфигурации используются только безопасные шаблоны.
-
-**Исходный production-репозиторий остаётся приватным.**
+Media, cookies, OAuth credentials, Telegram/YouTube tokens, рабочая база и runtime-логи не публикуются. Production repository остаётся приватным.

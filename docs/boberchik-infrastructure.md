@@ -1,56 +1,82 @@
 # Boberchik Infrastructure
 
-**Тип:** рабочая инфраструктура нескольких Linux-серверов
-**Задача:** хранить воспроизводимую и безопасную часть серверной конфигурации отдельно от живого runtime-состояния.
+[← Все проекты](../README.md) · [Код / примеры](../examples/boberchik-infrastructure/)
 
-## Что входит в проект
+**Тип:** рабочая инфраструктура нескольких Linux-серверов
+**Стек:** Linux · nginx · systemd · Bash · Python · GitHub Actions
+
+## Задача
+
+Хранить воспроизводимую часть серверной конфигурации отдельно от живого runtime-состояния и секретов, чтобы сервисы можно было проверять, переносить и восстанавливать.
+
+## Что входит
 
 - nginx-конфигурация;
 - systemd services и timers;
 - SSH-hardening, fail2ban и sysctl;
 - deployment/configuration scripts;
-- серверные приложения и служебные Python/Bash-утилиты;
+- Python/Bash служебные утилиты;
 - инвентаризация сервисов;
-- backup/recovery scripts;
-- автоматические проверки репозитория.
+- backup/recovery;
+- CI и secret scan.
 
-## Архитектурный принцип
+## Архитектура
 
 ```mermaid
 flowchart TD
-    G[Git: безопасная конфигурация] --> S1[Linux server A]
-    G --> S2[Linux server B]
-    A[Automation scripts] --> S1
-    A --> S2
-    S1 --> R1[nginx / systemd / apps]
-    S2 --> R2[nginx / systemd / apps]
-    B[Backup & recovery] --> S1
-    B --> S2
+    G[Git: safe configuration] --> CI[CI checks]
+    G --> DEPLOY[Deploy scripts]
+    DEPLOY --> S1[Linux server A]
+    DEPLOY --> S2[Linux server B]
+    S1 --> N1[nginx / systemd / apps]
+    S2 --> N2[nginx / systemd / apps]
+    BACKUP[Backup / recovery] --> S1
+    BACKUP --> S2
+    SECRET[Runtime secrets] -. not in Git .-> S1
+    SECRET -. not in Git .-> S2
 ```
 
-Git хранит **описание того, как система должна быть устроена**, но не рабочие секреты и не текущее состояние сервисов.
+## Цикл изменения
+
+```mermaid
+flowchart LR
+    CHANGE[Config change] --> CHECK[Secret + syntax checks]
+    CHECK --> COMMIT[Git]
+    COMMIT --> DEPLOY[Deploy]
+    DEPLOY --> HEALTH[Health checks]
+    HEALTH -->|OK| DONE[Done]
+    HEALTH -->|Fail| ROLLBACK[Restore / rollback]
+```
+
+## Пример структуры
+
+```text
+.github/workflows/ci.yml
+3x-ui/
+├── README.md
+├── install-vdsina.sh
+└── provision-reality.py
+apps/
+├── boberchik-cloud/
+├── boberchik-vpn/
+├── mcp-gateway/
+└── traffic-dashboard/
+scripts/
+└── secret-scan.sh
+```
+
+## Код / примеры
+
+- [Health check script](../examples/boberchik-infrastructure/healthcheck.sh)
+- [systemd service example](../examples/boberchik-infrastructure/example.service)
+- [Папка примеров](../examples/boberchik-infrastructure/)
 
 ## Проверки
 
-CI выполняет несколько практических проверок:
+CI выполняет secret scan, shell syntax validation и Python compile checks. Scanner блокирует реальные `.env` и token-like значения, но допускает безопасные шаблоны `.env.example`.
 
-- secret scan;
-- shell syntax validation;
-- Python compile checks.
+## Что не хранится в Git
 
-Отдельный secret scanner блокирует реальные `.env` и token-like значения, но допускает безопасные шаблоны типа `.env.example`.
+Рабочие базы, токены, ключи, client identifiers, cookies, sessions, certificates, логи и backup-архивы остаются вне публичного Git.
 
-## Что намеренно исключено из Git
-
-- рабочие базы данных;
-- пароли и API/OAuth tokens;
-- приватные SSH/TLS ключи;
-- клиентские UUID и другие идентификаторы доступа;
-- certificates, cookies, sessions;
-- логи, backup-архивы и временные runtime-данные.
-
-## Что показывает этот проект
-
-Это не «папка с конфигами», а практика эксплуатации: воспроизводимость, раздельное хранение secrets/runtime, автоматические проверки и возможность восстановить сервисы после переноса или сбоя.
-
-**Рабочий инфраструктурный репозиторий остаётся приватным.**
+Production infrastructure repository остаётся приватным.

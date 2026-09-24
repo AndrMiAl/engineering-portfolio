@@ -1,27 +1,64 @@
 # Хакатон 2024 — ML и геоданные
 
-**Тип:** командный хакатонный проект.
+[← Все проекты](../README.md) · [ML / примеры](../examples/hakaton-2024/)
 
-Проект работал с данными теплоснабжения и адресными наборами: подготовка данных, ML-классификация возможных ошибок, геокодирование объектов и визуализация на карте.
+**Тип:** командный хакатонный проект
+**Стек:** Python · Pandas · NumPy · scikit-learn · TensorFlow/Keras · Folium · geocoding
 
-## Pipeline
+## Задача
 
-1. загрузка и очистка Excel-данных;
-2. обработка пропусков и масштабирование признаков;
-3. кодирование классов ошибок;
-4. обучение модели для классификации ошибок;
-5. обработка и объединение адресных данных;
-6. геокодирование объектов;
-7. построение интерактивной карты.
+Проект обрабатывал данные теплоснабжения и адресные наборы: нужно было подготовить табличные данные, классифицировать возможные ошибки, объединить результаты с адресами и визуализировать объекты на карте.
 
-## Стек
+## Полный pipeline
 
-- Python;
-- Pandas / NumPy;
-- scikit-learn;
-- TensorFlow / Keras;
-- геокодирование;
-- Folium / геоданные;
-- Excel-based data processing.
+```mermaid
+flowchart LR
+    XLS[Excel data] --> CLEAN[Cleaning]
+    CLEAN --> PREP[Imputation / scaling / encoding]
+    PREP --> ML[ML classifier]
+    ML --> POST[Post-processing]
+    POST --> ADDR[Address merge]
+    ADDR --> GEO[Geocoding]
+    GEO --> MAP[Folium map]
+```
 
-Это командный хакатонный репозиторий, поэтому в публичном портфолио я показываю решение как case study, не копируя к себе чужую историю коммитов.
+## ML-часть
+
+```mermaid
+flowchart TB
+    RAW[Raw features] --> SPLIT[Train / test split]
+    SPLIT --> NUM[Numeric pipeline]
+    SPLIT --> CAT[Categorical pipeline]
+    NUM --> MODEL[TensorFlow / Keras]
+    CAT --> MODEL
+    MODEL --> PRED[Error class]
+    PRED --> RESULT[Result dataset]
+```
+
+## Структура исходного решения
+
+```text
+Neural_network.py
+Post_processing.py
+geocoder.py
+map_generator.py
+cleaned_excel_file.xlsx
+map.html
+Крутые бобры.pptx
+```
+
+Реальный код разделён на модель, post-processing, геокодирование и генерацию карты.
+
+## Код / примеры
+
+- [ML pipeline](../examples/hakaton-2024/ml_pipeline.py)
+- [Map pipeline](../examples/hakaton-2024/map_pipeline.py)
+- [Папка примеров](../examples/hakaton-2024/)
+
+## Что показывает проект
+
+Здесь важна связка нескольких этапов, а не только обучение модели: табличные данные нужно привести к пригодному виду, получить предсказание, связать результат с адресами и сделать его визуально проверяемым на карте.
+
+## Командный проект
+
+В публичном портфолио решение показано как case study. Исходная командная Git-история не переносится в личный профиль.

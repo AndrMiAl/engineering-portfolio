@@ -1,0 +1,16 @@
+[Unit]
+Description=Portfolio Example Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=example
+WorkingDirectory=/opt/example-app
+EnvironmentFile=-/etc/example-app/example.env
+ExecStart=/opt/example-app/.venv/bin/python -m app
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,38 +1,80 @@
 # 2 хостинга в 1 сайте
 
-**Тип:** рабочий сайт и веб-панель для управления сервисами на двух VPS-провайдерах.
+[← Все проекты](../README.md) · [Код / примеры](../examples/unified-vps-panel/)
 
-Цель проекта — не держать две разрозненные панели и набор ручных команд, а видеть обе серверные площадки из одного интерфейса и переключаться между ними без смены рабочего контекста. Для повторяемых действий и связки сервисов используется n8n как слой автоматизации и orchestration.
+**Тип:** рабочий сайт и веб-панель для двух VPS-площадок
+**Стек:** Python · Flask · JavaScript · n8n · Linux · nginx · systemd · 3x-ui/Xray
+
+## Задача
+
+Вместо двух разрозненных панелей и набора ручных команд нужен один интерфейс, в котором видно обе серверные площадки, состояние сервисов и пользовательские конфигурации. Важное условие — данные двух провайдеров не должны смешиваться.
 
 ## Что реализовано
 
-- переключение между двумя VPS-провайдерами в одном UI;
-- отдельное состояние и конфигурация каждого сервера;
-- health/status проверки;
-- отображение состояния управляющего канала и 3x-ui;
-- список пользователей и активных inbound-конфигураций;
-- операции управления пользователями там, где это поддерживается;
-- генерация и выдача готовых клиентских конфигураций;
-- provider-specific действия без смешивания данных двух серверов;
-- n8n-workflow для автоматизации повторяемых операций и связки сервисов;
-- интеграция с общей Linux/nginx/systemd-инфраструктурой.
+- единый UI с переключением провайдера;
+- overview по двум серверам;
+- health/status checks;
+- работа с пользователями;
+- отдельные действия и конфигурации для каждой площадки;
+- клиентский кабинет и устройства;
+- выдача готовых конфигураций;
+- резервное копирование перед изменениями;
+- интеграция с Linux/nginx/systemd;
+- automation/workflow слой для повторяемых действий.
 
 ## Архитектура
 
 ```mermaid
-flowchart LR
+flowchart TB
     UI[Единый Web UI] --> API[Python / Flask API]
-    N[n8n automation] --> API
-    API --> A[VPS provider A]
-    API --> B[VPS provider B]
+    API --> CORE[Provider-aware service layer]
+    CORE --> A[VPS A]
+    CORE --> B[VPS B]
     A --> XA[3x-ui / services]
     B --> XB[3x-ui / services]
-    API --> H[Health & status checks]
-    API --> C[Config generation]
+    API --> DB[(Users / rules)]
+    AUTO[n8n / automation] --> API
+    API --> HEALTH[Health checks]
+    API --> CFG[Config builder]
 ```
 
-## Стек
+## Один экран — два провайдера
 
-**Python · Flask · n8n · JavaScript · Linux · nginx · systemd · 3x-ui/Xray · REST/API**
+```mermaid
+flowchart LR
+    SELECT{Выбран провайдер}
+    SELECT -->|A| OA[Server A overview]
+    SELECT -->|B| OB[Server B overview]
+    OA --> STATUS[Status / users / configs]
+    OB --> STATUS
+    STATUS --> UI[Общий интерфейс]
+```
 
-В публичное описание не выносятся адреса серверов, UUID, ключи, подписки и другая рабочая конфигурация.
+## Реальная структура приватного проекта
+
+```text
+apps/boberchik-vpn/
+├── vpn_admin.py
+├── vpn_cabinet_ext.py
+├── full_template.py
+├── vpn-admin.html
+└── vpn-cabinet.html
+```
+
+В backend есть отдельные endpoint-группы для overview/status, пользователей, правил, кабинета, устройств и генерации конфигураций.
+
+## Код / примеры
+
+- [Provider adapter](../examples/unified-vps-panel/provider_adapter.py)
+- [Aggregated health endpoint](../examples/unified-vps-panel/health_api.py)
+- [Папка примеров](../examples/unified-vps-panel/)
+
+Примеры намеренно очищены от адресов серверов, UUID, ключей и любых реальных подписок.
+
+## Что здесь важно инженерно
+
+Главная часть задачи — не сам UI, а нормализация двух разных runtime-контекстов в один API. Внешнему интерфейсу не нужно знать детали каждой площадки: он получает одинаковую модель состояния, а provider-specific логика остаётся в backend.
+
+## Безопасность
+
+В публичный Git не выносятся реальные адреса, секреты, client UUID, приватные ключи и рабочие конфигурации. Production source остаётся приватным.

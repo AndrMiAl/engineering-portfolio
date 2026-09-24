@@ -1,0 +1,31 @@
+{
+  "name": "Portfolio service-check workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://example.invalid/health",
+        "options": {}
+      },
+      "id": "health-request",
+      "name": "Health Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Health Request", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
